@@ -10,6 +10,14 @@
 | --- | --- | --- |
 | [minesweeper](minesweeper/) | 控制台扫雷：三档难度、空白区递归展开、插旗、首点保护、计时器 | C++ / Visual Studio |
 
+## 怎么运行其中一个
+
+```bash
+git clone https://github.com/majordanbarry/projects.git
+```
+
+进入对应子目录，双击里面的 `.slnx`，按 `F5`。各项目的环境要求和操作说明见它自己的 README。
+
 ## 目录约定
 
 - 一个项目一个子目录，目录名用短横线小写。

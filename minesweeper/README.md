@@ -16,7 +16,8 @@
 需要 Visual Studio 2022（安装时勾选"使用 C++ 的桌面开发"工作负载）。
 
 ```bash
-git clone https://github.com/majordanbarry/minesweeper-cpp.git
+git clone https://github.com/majordanbarry/projects.git
+cd projects/minesweeper
 ```
 
 双击打开 `game.slnx`，按 `F5` 运行。
@@ -51,12 +52,14 @@ git clone https://github.com/majordanbarry/minesweeper-cpp.git
 ## 项目结构
 
 ```
-game/
+minesweeper/
 ├── game.slnx             # Visual Studio 解决方案
 ├── game/
 │   ├── main.cpp          # 程序入口：难度菜单、开局与再来一局
 │   ├── game.h            # GameConfig 结构体与函数声明
 │   └── game.cpp          # 核心逻辑：初始化、显示、布雷、排雷
+├── screenshots/
+│   └── demo.gif          # README 顶部的演示动画
 ├── README.md
 └── LICENSE.txt
 ```
@@ -72,6 +75,7 @@ game/
 
 ## 相关
 
+- [projects](../)：本项目所属的项目合集，其它项目也放在这里
 - [coding-journey](https://github.com/majordanbarry/coding-journey)：写这个项目之前的学习练习，按知识点编号整理
 
 ## 许可
