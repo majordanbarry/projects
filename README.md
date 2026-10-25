@@ -7,9 +7,7 @@
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](#)
 [![Status](https://img.shields.io/badge/status-v1.0-brightgreen.svg)](#)
 
-<!-- 演示 GIF：录好后放到 screenshots/demo.gif，然后删掉下面两行的注释符号
 ![游戏演示](screenshots/demo.gif)
--->
 
 初级 9×9 / 中级 16×16 / 高级 16×30 三档难度的经典扫雷。采用双数组设计 + 边界填充，棋盘尺寸在运行时确定，代码拆分为声明、逻辑、入口三个模块。
 
