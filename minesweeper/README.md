@@ -1,85 +1,54 @@
-# Minesweeper-CPP
+# Minesweeper-CPP · 终端扫雷
 
-> 用 C++ 写的经典扫雷游戏（控制台版）
+用 C++ 写的经典扫雷。第一步就能展开一片安全区，标完周围的雷，一条指令翻开剩下的邻格。
 
-[![C++](https://img.shields.io/badge/C%2B%2B-blue.svg)](#)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.txt)
-[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](#)
-[![Status](https://img.shields.io/badge/status-v1.0-brightgreen.svg)](#)
+![初级实局对照，标记两颗雷后输入 c 3 3，一步翻开八格](screenshots/quick-reveal.png)
 
-![游戏演示](screenshots/demo.gif)
+[快速开始](#快速开始) · [操作指令](#操作指令) · [查看源码](game/) · [MIT 许可证](LICENSE.txt)
 
-初级 9×9 / 中级 16×16 / 高级 16×30 三档难度的经典扫雷。采用双数组设计 + 边界填充，棋盘尺寸在运行时确定，代码拆分为声明、逻辑、入口三个模块。
+## 快速开始
 
-## 如何运行
+1. 安装 Visual Studio 2026，并勾选「使用 C++ 的桌面开发」工作负载。工程使用 MSVC `v145` 工具集。
+2. 用以下命令克隆仓库。
 
-需要 Visual Studio 2022（安装时勾选"使用 C++ 的桌面开发"工作负载）。
+   ```bash
+   git clone https://github.com/majordanbarry/projects.git
+   ```
 
-```bash
-git clone https://github.com/majordanbarry/projects.git
-cd projects/minesweeper
-```
+3. 打开 [game.slnx](game.slnx)（位于克隆后的 `projects/minesweeper` 目录），按 **F5** 运行。
+4. 输入 `1`、`2` 或 `3` 选择难度，输入 `0` 退出。
 
-双击打开 `game.slnx`，按 `F5` 运行。
+| 难度 | 棋盘 | 雷数 |
+| --- | --- | --- |
+| 初级 | 9 × 9 | 10 |
+| 中级 | 16 × 16 | 40 |
+| 高级 | 16 × 30 | 99 |
 
-## 玩法
+## 操作指令
 
-1. 运行后先选难度：`1` 初级 / `2` 中级 / `3` 高级，`0` 退出
-2. 输入 `行 列` 翻开格子
-3. 输入 `f 行 列` 插旗标记，再输入一次取消。旗子用完时，先撤掉一面才能继续插旗
-4. 对已翻开的数字格输入 `c 行 列` 快速翻格。周围旗数等于格子上的数字时，一次翻开周围未插旗的格子，算一步
-5. 数字表示该格周围 8 格中的雷数。快速翻格时旗子插错也可能踩雷，踩到雷即失败
-6. 翻开全部安全格即为胜利（初级 71 格 / 中级 216 格 / 高级 381 格）
-7. 结束后回答 `y` 再来一局，其他任意键返回菜单
+| 指令 | 效果 |
+| --- | --- |
+| `3 5` | 翻开第 3 行第 5 列。首翻时才布雷，点击格和周围一圈都安全。 |
+| `f 3 5` | 插旗，再输一次撤旗。旗子用完后，先撤一面才能继续插。 |
+| `c 3 5` | 对已翻开的数字格使用。周围旗数等于数字时，翻开其余邻格，算一步。旗子插错可能踩雷。 |
 
-> 第一次点击保证不会踩雷，必定翻开一片空白区，方便开局。
+翻开所有安全格就能获胜，踩雷则失败。对局中显示剩余雷数、步数和用时，结束时揭晓雷区。输入 `y` 再玩一局。
 
-## 功能
+<details>
+<summary>查看控制台录屏</summary>
 
-- [x] 三档难度：初级 9×9/10 雷、中级 16×16/40 雷、高级 16×30/99 雷
-- [x] 随机布雷（不重复落点）
-- [x] 自动计算周围雷数
-- [x] 空白区域递归展开（DFS 洪水填充）
-- [x] 插旗标记（`f 行 列` 切换）
-- [x] 快速翻格（`c 行 列`）
-- [x] 首次点击不踩雷（自动留出 3×3 安全区）
-- [x] 剩余雷数、已走步数、用时实时显示
-- [x] 对局计时器
-- [x] 结束后可再来一局
-- [x] 完整的胜负判定与菜单循环
-- [x] 游戏结束揭晓整片雷区
-- [x] 非法输入保护（输错不会死循环）
-- [ ] 重构为面向对象
+![控制台中的扫雷对局](screenshots/demo.gif)
 
-## 项目结构
+</details>
 
-```
-minesweeper/
-├── game.slnx             # Visual Studio 解决方案
-├── game/
-│   ├── main.cpp          # 程序入口：难度菜单、开局与再来一局
-│   ├── game.h            # GameConfig 结构体与函数声明
-│   └── game.cpp          # 核心逻辑：初始化、显示、布雷、排雷
-├── screenshots/
-│   └── demo.gif          # README 顶部的演示动画
-├── README.md
-└── LICENSE.txt
-```
+## 代码怎么实现
 
-## 技术实现
+- [`game/main.cpp`](game/main.cpp) 管理难度菜单、开局和重玩。
+- [`game/game.h`](game/game.h) 定义难度配置和棋盘类型。雷区与显示状态分别存入两个二维 `vector`，棋盘尺寸在运行时确定。
+- [`game/game.cpp`](game/game.cpp) 负责布雷、翻格、插旗和结算。棋盘外填充一圈，便于统计八邻格。翻到 `0` 时用 DFS 展开，普通翻格和快速翻格共用计步与结算。
 
-- **动态尺寸**：棋盘用 `vector<vector<char>>` 在运行时分配，同一套逻辑支持任意行列数；一档难度只是一组配置参数（`GameConfig` 的 `name` / `rows` / `cols` / `mines`）
-- **双数组设计**：`mine` 数组存雷（`'1'` 有雷 / `'0'` 无雷），`show` 数组存显示状态（`'*'` 未翻开 / `'F'` 插旗 / 数字表示周围雷数），数据结构与展示职责分离
-- **空白区递归展开**：点击到周围无雷的格子时，用深度优先搜索（DFS）向 8 个方向递归展开，遇到数字格自动停止；函数返回本次揭开的总格数用于胜利判定
-- **边界填充技巧**：实际开辟 `(r+2) × (c+2)` 的数组，只显示中间的 `r × c`，统计周围 8 格雷数时无需额外判断数组越界
-- **输入容错**：整行读入后交给 `istringstream` 解析，配合 `getline` 的返回值判断流状态，任何非法输入都不会让 `cin` 进入失败态死循环
-- **模块化拆分**：声明与定义分离（`game.h` / `game.cpp`），程序入口单独置于 `main.cpp`
+后续计划把棋盘规则与控制台交互进一步拆开。
 
 ## 相关
 
-- [projects](../)：本项目所属的项目合集，其它项目也放在这里
-- [coding-journey](https://github.com/majordanbarry/coding-journey)：写这个项目之前的学习练习，按知识点编号整理
-
-## 许可
-
-[MIT](LICENSE.txt)
+[项目合集](../) · [学习练习](https://github.com/majordanbarry/coding-journey)

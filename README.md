@@ -1,14 +1,14 @@
 # projects
 
-> 完整项目合集。每个子目录是一个能独立运行的项目，学习练习放在另一个仓库。
+> 可以独立运行的小项目合集。
 
-学习过程中的小题与语法练习：[coding-journey](https://github.com/majordanbarry/coding-journey)。
+## 精选项目 · 终端扫雷
 
-## 项目列表
+[![终端扫雷快速翻格演示，输入 c 3 3 后翻开八格](minesweeper/screenshots/quick-reveal.png)](minesweeper/)
 
-| 项目 | 说明 | 技术 |
-| --- | --- | --- |
-| [minesweeper](minesweeper/) | 控制台扫雷：三档难度、空白区递归展开、插旗、首点保护、计时器 | C++ / Visual Studio |
+三档难度，首翻自动展开安全区。标好数字格周围的雷后，一条指令就能翻开剩下的邻格。
+
+[查看玩法和运行步骤](minesweeper/#快速开始) · [浏览 C++ 源码](minesweeper/game/)
 
 ## 怎么运行其中一个
 
@@ -28,3 +28,5 @@ git clone https://github.com/majordanbarry/projects.git
 ## 许可
 
 各项目根目录下的 LICENSE 文件分别适用。
+
+学习过程中的小题与语法练习收录在 [coding-journey](https://github.com/majordanbarry/coding-journey)。
