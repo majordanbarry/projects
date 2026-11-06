@@ -116,24 +116,24 @@ bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 			<< "    用时：" << elapsed << " 秒\n";
 		cout << "请输入（翻开：行 列    插旗：f 行 列）：\n";
 
-		// 整行读入再解析，任何非法输入都不会让 cin 卡死
-		if (!getline(cin >> ws, line)) {
+		// 整行读入，避免格式错误影响下一条命令
+		if (!getline(cin, line)) {
 			cout << "\n输入结束，退出本局。\n";
 			return false;
 		}
 		istringstream iss(line);
-		string cmd;
-		iss >> cmd;
-		if (cmd.empty()) continue;
-
-		int x = 0, y = 0;
-		bool isFlag = (cmd == "f" || cmd == "F");
+		string rowToken;
+		iss >> rowToken;
+		const bool isFlag = (rowToken == "f" || rowToken == "F");
 		if (isFlag) {
-			iss >> x >> y;
+			iss >> rowToken;
 		}
-		else {
-			x = atoi(cmd.c_str());
-			iss >> y;
+
+		istringstream row(rowToken);
+		int x = 0, y = 0;
+		if (!(row >> x) || !row.eof() || !(iss >> y) || !(iss >> ws).eof()) {
+			cout << "输入格式错误，请输入「行 列」或「f 行 列」。\n";
+			continue;
 		}
 
 		if (x < 1 || x > r || y < 1 || y > c) {
@@ -150,6 +150,10 @@ bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 			}
 			else if (show[x][y] != '*') {
 				cout << "该位置已经翻开，不能再插旗！\n";
+				continue;
+			}
+			else if (flags == mineCount) {
+				cout << "旗子已用完，请先取消一面旗子。\n";
 				continue;
 			}
 			else {

@@ -42,8 +42,10 @@ void playSession(const GameConfig& cfg) {
 
 		cout << "再来一局？(y = 是，其他键 = 返回菜单)：";
 		string ans;
-		if (!getline(cin >> ws, ans)) return;          // 输入结束，直接退出
-		if (ans.empty() || (ans[0] != 'y' && ans[0] != 'Y')) {
+		if (!getline(cin, ans)) return;
+		istringstream reply(ans);
+		char choice = '\0';
+		if (!(reply >> choice) || (choice != 'y' && choice != 'Y') || !(reply >> ws).eof()) {
 			cout << "\n";
 			return;
 		}
@@ -52,18 +54,16 @@ void playSession(const GameConfig& cfg) {
 }
 
 int main() {
-	int input = 0;
 	srand((unsigned int)time(NULL));
-	do {
+	string line;
+	while (true) {
 		menu();
 		cout << "请选择难度：\n";
-		cin >> input;
-		if (cin.fail()) {
-			if (cin.eof()) return 0;
-			cin.clear();
-			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		if (!getline(cin, line)) return 0;
+		istringstream selection(line);
+		int input = 0;
+		if (!(selection >> input) || !(selection >> ws).eof()) {
 			cout << "输入格式错误，请重新输入\n";
-			input = -1;          // 保证 do-while 继续循环，而不是退出
 			continue;
 		}
 		if (input >= 1 && input <= LEVEL_COUNT) {
@@ -71,10 +71,10 @@ int main() {
 		}
 		else if (input == 0) {
 			cout << "退出游戏\n";
+			return 0;
 		}
 		else {
 			cout << "输入错误，请重新输入\n";
 		}
-	} while (input);
-	return 0;
+	}
 }
