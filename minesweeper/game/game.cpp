@@ -61,16 +61,20 @@ void SetMine(Board& mine, int r, int c, int mineCount, int safeX, int safeY) {
 	}
 }
 
-int GetMineCount(const Board& mine, int r, int c) {
+static int CountNeighborhood(const Board& board, int x, int y, char marker) {
 	int count = 0;
-	for (int i = r - 1;i <= r + 1;i++) {
-		for (int j = c - 1;j <= c + 1;j++) {
-			if (mine[i][j] == '1') {
+	for (int i = x - 1; i <= x + 1; i++) {
+		for (int j = y - 1; j <= y + 1; j++) {
+			if (board[i][j] == marker) {
 				count++;
 			}
 		}
 	}
 	return count;
+}
+
+int GetMineCount(const Board& mine, int r, int c) {
+	return CountNeighborhood(mine, r, c, '1');
 }
 
 int OpenBoard(const Board& mine, Board& show, int r, int c, int x, int y) {
@@ -96,7 +100,31 @@ int OpenBoard(const Board& mine, Board& show, int r, int c, int x, int y) {
 	return opened;
 }
 
-// 排雷主循环：翻开写 "行 列"，插旗写 "f 行 列"
+struct RevealResult {
+	int opened;
+	bool hitMine;
+};
+
+static RevealResult OpenNeighbors(const Board& mine, Board& show, int r, int c, int x, int y) {
+	// 先检查整个邻域，避免踩雷前只翻开一部分格子。
+	for (int i = x - 1; i <= x + 1; i++) {
+		for (int j = y - 1; j <= y + 1; j++) {
+			if (show[i][j] == '*' && mine[i][j] == '1') {
+				return {0, true};
+			}
+		}
+	}
+
+	int opened = 0;
+	for (int i = x - 1; i <= x + 1; i++) {
+		for (int j = y - 1; j <= y + 1; j++) {
+			opened += OpenBoard(mine, show, r, c, i, j);
+		}
+	}
+	return {opened, false};
+}
+
+// 排雷主循环：翻开写 "行 列"，插旗写 "f 行 列"，快速翻格写 "c 行 列"
 // 返回值：true = 排雷成功，false = 踩雷或中途退出
 bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 	int win = 0;              // 已翻开的格子数
@@ -114,7 +142,7 @@ bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 		cout << "剩余雷数：" << mineCount - flags
 			<< "    已走步数：" << steps
 			<< "    用时：" << elapsed << " 秒\n";
-		cout << "请输入（翻开：行 列    插旗：f 行 列）：\n";
+		cout << "请输入（翻开：行 列    插旗：f 行 列    快速翻格：c 行 列）：\n";
 
 		// 整行读入，避免格式错误影响下一条命令
 		if (!getline(cin, line)) {
@@ -125,14 +153,15 @@ bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 		string rowToken;
 		iss >> rowToken;
 		const bool isFlag = (rowToken == "f" || rowToken == "F");
-		if (isFlag) {
+		const bool isChord = (rowToken == "c" || rowToken == "C");
+		if (isFlag || isChord) {
 			iss >> rowToken;
 		}
 
 		istringstream row(rowToken);
 		int x = 0, y = 0;
 		if (!(row >> x) || !row.eof() || !(iss >> y) || !(iss >> ws).eof()) {
-			cout << "输入格式错误，请输入「行 列」或「f 行 列」。\n";
+			cout << "输入格式错误，请输入「行 列」「f 行 列」或「c 行 列」。\n";
 			continue;
 		}
 
@@ -166,31 +195,55 @@ bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 			continue;
 		}
 
-		// ---------- 翻开 ----------
-		if (show[x][y] == 'F') {
-			cout << "该位置插了旗，请先取消旗子再翻开！\n";
-			continue;
+		RevealResult reveal{};
+		if (isChord) {
+			const char center = show[x][y];
+			if (center < '0' || center > '8') {
+				cout << "请在已翻开的数字格上使用快速翻格。\n";
+				continue;
+			}
+			if (CountNeighborhood(show, x, y, 'F') != center - '0') {
+				cout << "周围旗子数量与数字不符，无法快速翻格。\n";
+				continue;
+			}
+			reveal = OpenNeighbors(mine, show, r, c, x, y);
 		}
-		if (show[x][y] != '*') {
-			cout << "该位置已排查过，请重新输入！\n";
-			continue;
+		else {
+			if (show[x][y] == 'F') {
+				cout << "该位置插了旗，请先取消旗子再翻开！\n";
+				continue;
+			}
+			if (show[x][y] != '*') {
+				cout << "该位置已排查过，请重新输入！\n";
+				continue;
+			}
+
+			// 第一次真正翻开时才布雷，并给点击点留出安全区
+			if (firstClick) {
+				SetMine(mine, r, c, mineCount, x, y);
+				startTime = time(nullptr);
+				firstClick = false;
+			}
+
+			reveal.hitMine = mine[x][y] == '1';
+			if (!reveal.hitMine) {
+				reveal.opened = OpenBoard(mine, show, r, c, x, y);
+			}
 		}
 
-		// 第一次真正翻开时才布雷，并给点击点留出安全区
-		if (firstClick) {
-			SetMine(mine, r, c, mineCount, x, y);
-			startTime = time(nullptr);   // 计时从第一下点击开始
-			firstClick = false;
-		}
-
-		if (mine[x][y] == '1') {
+		if (reveal.hitMine) {
 			long elapsed = (long)(time(nullptr) - startTime);
 			cout << "很遗憾，你踩到雷了！  用时 " << elapsed << " 秒\n";
 			DisplayResult(mine, show, r, c);
 			return false;
 		}
 
-		win += OpenBoard(mine, show, r, c, x, y);
+		if (reveal.opened == 0) {
+			cout << "周围没有可以翻开的格子。\n";
+			continue;
+		}
+
+		win += reveal.opened;
 		steps++;
 		Displayboard(show, r, c);
 
