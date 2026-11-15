@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'minesweeper-v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing Minesweeper tag to publish'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -11,9 +17,12 @@ permissions:
 jobs:
   release:
     runs-on: windows-2025
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
           persist-credentials: false
 
       - name: Build and test the Windows x64 package
@@ -49,5 +58,5 @@ jobs:
 
           对局棋盘会在尺寸足够的 Windows 终端里原地刷新。高级棋盘需要至少 94 列 × 26 行。
           '@
-          gh release create $env:GITHUB_REF_NAME Minesweeper-Windows-x64.zip --verify-tag --title "Minesweeper ${env:GITHUB_REF_NAME}" --notes "$notes"
+          gh release create $env:RELEASE_TAG Minesweeper-Windows-x64.zip --verify-tag --title "Minesweeper ${env:RELEASE_TAG}" --notes "$notes"
           exit $LASTEXITCODE

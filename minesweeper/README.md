@@ -8,7 +8,7 @@
 
 ## 快速开始
 
-**[下载 Windows x64 ZIP](https://github.com/majordanbarry/projects/releases/download/minesweeper-v1.1.0/Minesweeper-Windows-x64.zip)**，解压后双击 `Minesweeper.exe`。支持 Windows 10 / 11，试玩无需安装 Visual Studio。
+**[下载 Windows x64 ZIP](https://github.com/majordanbarry/projects/releases/download/minesweeper-v1.1.1/Minesweeper-Windows-x64.zip)**，解压后双击 `Minesweeper.exe`。支持 Windows 10 / 11，试玩无需安装 Visual Studio。
 
 ### 从源码运行
 
