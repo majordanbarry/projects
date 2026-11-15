@@ -8,6 +8,10 @@
 
 ## 快速开始
 
+**[下载 Windows x64 ZIP](https://github.com/majordanbarry/projects/releases/download/minesweeper-v1.1.0/Minesweeper-Windows-x64.zip)**，解压后双击 `Minesweeper.exe`。支持 Windows 10 / 11，试玩无需安装 Visual Studio。
+
+### 从源码运行
+
 1. 安装 Visual Studio 2026，并勾选「使用 C++ 的桌面开发」工作负载。工程使用 MSVC `v145` 工具集。
 2. 用以下命令克隆仓库。
 
@@ -33,6 +37,8 @@
 | `c 3 5` | 对已翻开的数字格使用。周围旗数等于数字时，翻开其余邻格，算一步。旗子插错可能踩雷。 |
 
 翻开所有安全格就能获胜，踩雷则失败。对局中显示剩余雷数、步数和用时，结束时揭晓雷区。输入 `y` 再玩一局。
+
+棋盘会在尺寸足够的 Windows 终端里原地刷新。玩高级时可把窗口拉到至少 94 列 × 26 行。窗口较小或输出被重定向时，程序使用逐行输出。
 
 <details>
 <summary>查看控制台录屏</summary>

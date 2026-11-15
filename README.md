@@ -8,7 +8,7 @@
 
 三档难度，首翻自动展开安全区。标好数字格周围的雷后，一条指令就能翻开剩下的邻格。
 
-[查看玩法和运行步骤](minesweeper/#快速开始) · [浏览 C++ 源码](minesweeper/game/)
+**[下载试玩 · Windows x64](https://github.com/majordanbarry/projects/releases/download/minesweeper-v1.1.0/Minesweeper-Windows-x64.zip)** · [查看玩法和运行步骤](minesweeper/#快速开始) · [浏览 C++ 源码](minesweeper/game/)
 
 ## 怎么运行其中一个
 

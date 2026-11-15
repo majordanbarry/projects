@@ -1,7 +1,36 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 #include<iostream>
 #include"game.h"
 using namespace std;
+
+#ifdef _WIN32
+class ConsoleEncoding {
+public:
+	ConsoleEncoding() {
+		DWORD mode;
+		if (GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &mode)) {
+			const UINT currentCodePage = GetConsoleOutputCP();
+			if (currentCodePage != CP_UTF8 && SetConsoleOutputCP(CP_UTF8)) {
+				originalCodePage = currentCodePage;
+			}
+		}
+	}
+
+	~ConsoleEncoding() {
+		if (originalCodePage != 0) {
+			cout.flush();
+			SetConsoleOutputCP(originalCodePage);
+		}
+	}
+
+private:
+	UINT originalCodePage = 0;
+};
+#endif
 
 // 三档难度：显示行列数与雷数
 static const GameConfig LEVELS[] = {
@@ -30,7 +59,6 @@ bool game(const GameConfig& cfg) {
 	InitBoard(mine, cfg.rows + 2, cfg.cols + 2, '0');
 	InitBoard(show, cfg.rows + 2, cfg.cols + 2, '*');
 
-	Displayboard(show, cfg.rows, cfg.cols);
 	// 布雷推迟到玩家第一次点击时进行，保证第一下不会踩雷
 	return FindMine(mine, show, cfg.rows, cfg.cols, cfg.mines);
 }
@@ -54,6 +82,9 @@ void playSession(const GameConfig& cfg) {
 }
 
 int main() {
+#ifdef _WIN32
+	const ConsoleEncoding encoding;
+#endif
 	srand((unsigned int)time(NULL));
 	string line;
 	while (true) {

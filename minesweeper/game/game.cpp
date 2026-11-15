@@ -1,5 +1,58 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 #include"game.h"
+
+class BoardScreen {
+public:
+	BoardScreen() {
+#ifdef _WIN32
+		DWORD inputMode;
+		if (GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &inputMode) &&
+			GetConsoleMode(output, &originalMode)) {
+			enabled = SetConsoleMode(output, originalMode | ENABLE_PROCESSED_OUTPUT |
+				ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
+		}
+#endif
+	}
+
+	~BoardScreen() {
+#ifdef _WIN32
+		if (enabled) {
+			cout.flush();
+			SetConsoleMode(output, originalMode);
+		}
+#endif
+	}
+
+	bool refresh(int rows, int cols) const {
+#ifdef _WIN32
+		CONSOLE_SCREEN_BUFFER_INFO info;
+		if (enabled && GetConsoleScreenBufferInfo(output, &info)) {
+			const int width = info.srWindow.Right - info.srWindow.Left + 1;
+			const int height = info.srWindow.Bottom - info.srWindow.Top + 1;
+			// Leave room for the status, prompt and echoed command below the board.
+			if (width >= 72 && width > (cols + 1) * CELL_W && height >= rows + 10) {
+				cout << "\x1b[H\x1b[2J";
+				return true;
+			}
+		}
+#else
+		(void)rows;
+		(void)cols;
+#endif
+		return false;
+	}
+
+private:
+#ifdef _WIN32
+	HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD originalMode = 0;
+	bool enabled = false;
+#endif
+};
 
 void InitBoard(Board& board, int totalR, int totalC, char set) {
 	board.assign(totalR, vector<char>(totalC, set));
@@ -134,10 +187,22 @@ bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 	time_t startTime = 0;     // 第一次翻开时开始计时
 	int total = r * c - mineCount;   // 需要翻开的安全格总数
 	string line;
+	string message;
+	bool boardChanged = true;
+	const BoardScreen screen;
 
 	while (win < total) {
 		// 计时器：还没开始点击时固定显示 0
 		long elapsed = firstClick ? 0 : (long)(time(nullptr) - startTime);
+
+		const bool refreshed = screen.refresh(r, c);
+		if (refreshed) {
+			cout << "扫雷  " << r << " x " << c << "  /  " << mineCount << " 雷\n\n";
+		}
+		if (refreshed || boardChanged) Displayboard(show, r, c);
+		boardChanged = false;
+		if (!message.empty() || refreshed) cout << message << '\n';
+		message.clear();
 
 		cout << "剩余雷数：" << mineCount - flags
 			<< "    已走步数：" << steps
@@ -161,12 +226,12 @@ bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 		istringstream row(rowToken);
 		int x = 0, y = 0;
 		if (!(row >> x) || !row.eof() || !(iss >> y) || !(iss >> ws).eof()) {
-			cout << "输入格式错误，请输入「行 列」「f 行 列」或「c 行 列」。\n";
+			message = "输入格式错误，请输入「行 列」「f 行 列」或「c 行 列」。";
 			continue;
 		}
 
 		if (x < 1 || x > r || y < 1 || y > c) {
-			cout << "输入的坐标不合法，请重新输入！\n";
+			message = "输入的坐标不合法，请重新输入！";
 			continue;
 		}
 
@@ -175,23 +240,23 @@ bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 			if (show[x][y] == 'F') {
 				show[x][y] = '*';
 				flags--;
-				cout << "已取消 (" << x << "," << y << ") 的旗子。\n";
+				message = "已取消 (" + to_string(x) + "," + to_string(y) + ") 的旗子。";
 			}
 			else if (show[x][y] != '*') {
-				cout << "该位置已经翻开，不能再插旗！\n";
+				message = "该位置已经翻开，不能再插旗！";
 				continue;
 			}
 			else if (flags == mineCount) {
-				cout << "旗子已用完，请先取消一面旗子。\n";
+				message = "旗子已用完，请先取消一面旗子。";
 				continue;
 			}
 			else {
 				show[x][y] = 'F';
 				flags++;
-				cout << "已在 (" << x << "," << y << ") 插旗。\n";
+				message = "已在 (" + to_string(x) + "," + to_string(y) + ") 插旗。";
 			}
 			steps++;
-			Displayboard(show, r, c);
+			boardChanged = true;
 			continue;
 		}
 
@@ -199,22 +264,22 @@ bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 		if (isChord) {
 			const char center = show[x][y];
 			if (center < '0' || center > '8') {
-				cout << "请在已翻开的数字格上使用快速翻格。\n";
+				message = "请在已翻开的数字格上使用快速翻格。";
 				continue;
 			}
 			if (CountNeighborhood(show, x, y, 'F') != center - '0') {
-				cout << "周围旗子数量与数字不符，无法快速翻格。\n";
+				message = "周围旗子数量与数字不符，无法快速翻格。";
 				continue;
 			}
 			reveal = OpenNeighbors(mine, show, r, c, x, y);
 		}
 		else {
 			if (show[x][y] == 'F') {
-				cout << "该位置插了旗，请先取消旗子再翻开！\n";
+				message = "该位置插了旗，请先取消旗子再翻开！";
 				continue;
 			}
 			if (show[x][y] != '*') {
-				cout << "该位置已排查过，请重新输入！\n";
+				message = "该位置已排查过，请重新输入！";
 				continue;
 			}
 
@@ -233,22 +298,24 @@ bool FindMine(Board& mine, Board& show, int r, int c, int mineCount) {
 
 		if (reveal.hitMine) {
 			long elapsed = (long)(time(nullptr) - startTime);
+			screen.refresh(r, c);
 			cout << "很遗憾，你踩到雷了！  用时 " << elapsed << " 秒\n";
 			DisplayResult(mine, show, r, c);
 			return false;
 		}
 
 		if (reveal.opened == 0) {
-			cout << "周围没有可以翻开的格子。\n";
+			message = "周围没有可以翻开的格子。";
 			continue;
 		}
 
 		win += reveal.opened;
 		steps++;
-		Displayboard(show, r, c);
+		boardChanged = true;
 
 		if (win == total) {
 			long elapsed = (long)(time(nullptr) - startTime);
+			if (!screen.refresh(r, c)) Displayboard(show, r, c);
 			cout << "恭喜你，排雷成功！  用时 " << elapsed << " 秒，共 " << steps << " 步\n";
 			DisplayResult(mine, show, r, c);
 			return true;
